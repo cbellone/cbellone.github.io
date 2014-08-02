@@ -1,0 +1,206 @@
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+a {
+    text-decoration: none;
+    color: rgb(61, 146, 201);
+}
+a:hover,
+a:focus {
+    text-decoration: underline;
+}
+
+body {
+    background:rgb(61, 79, 93);
+    color: white;
+    font-family: 'Pontano Sans', sans-serif;
+}
+
+header, .header {
+    margin-bottom: 2px;
+    color: white;
+    border-bottom: 2px solid rgb(61, 79, 93);
+}
+
+div.profile > *, h1, h2, h3, h4 {
+    padding:0;
+    margin:0;
+}
+
+ul {
+    list-style-type:none;
+}
+
+footer, .footer {
+    margin-top: 15px;
+    border-top: 2px solid white;
+    padding-top: 5px;
+    text-align:center;
+    vertical-align:middle;
+}
+
+footer > ul > li > a {
+    color: white;
+    opacity: 0.2;
+}
+footer > ul > li > a:hover,
+footer > ul > li > a:focus {
+    text-decoration: none;
+    color: rgb(61, 146, 201);
+    opacity: 1;
+}
+
+footer > ul, footer > ul > li {
+    display: inline;
+}
+
+.content-section {
+    background: rgb(255,255,255);
+    background: rgba(255,255,255,0.5);
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    /* thanks to brainleaf.eu */
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#7fffffff, endColorstr=#7fffffff)";
+    color: rgb(61, 79, 93);
+}
+
+div.image {
+    float:left;
+}
+
+div.break {
+    clear:both;
+}
+
+a.profile-link {
+    color: white;
+}
+a.profile-link:hover,
+a.profile-link:focus {
+    text-decoration: none;
+    color: rgb(61, 146, 201);    
+}
+
+div.license {
+    padding-top:0.5em;
+}
+
+/* small version */
+@media screen and (min-width: 18.75em) {/* 300px */
+    .main {
+        margin: 1% 0 0;
+        font-size:100%;
+    }
+    
+    div.image {
+        background-image: url('http://www.gravatar.com/avatar/8537147c9e385db8f7c226b282ee374c.png?s=100');
+        width:100px;
+        height:100px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+    }
+    
+    div.profile {
+        width:10em;
+        float:left;
+        padding-left: 0.5em;
+    }
+    h1 {
+        font-size:120%;
+    }
+    h3 {
+        font-size:110%;
+    }
+    h4 {
+        font-size: 75%;
+    }
+    .content-section {
+        margin-top:0.4em;
+        padding:0.2em;
+    }
+    ul, li {
+        padding-left: 0.2em;
+        padding-top: 0.2em;
+        display:inline;
+    }
+    
+    .large-screen {
+        display:none;
+    }
+}
+/* medium version */
+@media screen and (min-width: 35em) {/* 768px */
+    .main {
+        margin: 1% 0 0;
+        font-size:110%;
+    }
+    h1 {
+        font-size:160%;
+    }
+    h3 {
+        font-size:130%;
+    }
+    h4 {
+        font-size: 100%;
+    }
+    div.image {
+        background-image: url('http://www.gravatar.com/avatar/8537147c9e385db8f7c226b282ee374c.png?s=120');
+        width:120px;
+        height:120px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+    }
+    div.profile {
+        width:25em;
+        float:left;
+        padding-left: 10px;
+    }
+    .content-section {
+        padding:0.5em;
+    }
+    
+}
+/* large version */
+@media screen and (min-width: 64em) { /* 1024px */
+    .main {
+        max-width: 40em;
+        margin: 5% auto 1%;
+        font-size:100%;
+    }
+    h1 {
+        font-size:160%;
+    }
+    h3 {
+        font-size:120%;
+    }
+    h4 {
+        font-size: 95%;
+    }
+    div.image {
+        background-image: url('http://www.gravatar.com/avatar/8537147c9e385db8f7c226b282ee374c.png?s=150');
+        width:150px;
+        height:150px;
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+    }
+    .content-section {
+        margin-top:10px;
+        padding:20px;
+    }
+    .fa-2x {
+        font-size: inherit;
+    }
+    ul, li {
+        display: block;
+    }
+    .large-screen {
+        display: inline;
+    }
+}
