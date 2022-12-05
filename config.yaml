@@ -1,7 +1,8 @@
-baseURL: https://c.bellone.info/
+baseURL: https://ticketguy.dev/
 languageCode: en-us
 title: Celestino's blog
 theme: hugo-profile
+enableEmoji: true
 
 outputs:
   home:
@@ -111,15 +112,13 @@ params:
   hero:
     enable: true
     intro: "Hi there, my name is"
-    title: "Celestino."
-    subtitle: "I build things for the web"
-    content: "Fast learner, passionate software developer with 20+ years of experience in the industry, proficient in Java (1.3-19) and focused on web development.
-    I really like to improve my skills by experimenting new
-    technologies and frameworks. My current focus is optimize and package java applications to run in the
-    cloud."
-    image: /images/hero.svg
+    title: "Celestino"
+    subtitle: 'a.k.a. "The ticket guy"'
+    content: "Fast learner, passionate software developer with 20+ years of experience in the industry, proficient in Java (1.3-19) and web development.
+    I really like to experiment with new technologies and frameworks. My current focus is optimize and package java applications to run in the cloud."
+    image: /images/me.jpg
     button:
-      enable: true
+      enable: false
       name: "Resume"
       url: "#"
       download: true
