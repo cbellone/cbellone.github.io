@@ -8,10 +8,13 @@ tags:
 - Java
 - AWS Lambda
 - example
-image: /images/cold_start/post.jpg
+image: /images/cold_start/taylor-vick-M5tzZtFCOfs-unsplash.jpg
 description: ""
 toc:
 ---
+<div class="text-center mb-3">
+    <small>Photo by <a href="https://unsplash.com/@tvick?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Taylor Vick</a> on <a href="https://unsplash.com/s/photos/network?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></small>
+</div>
 
 ## Introduction
 
@@ -25,11 +28,11 @@ Its grammar can be perceived as _verbose_, its _strongly typed_ nature _difficul
 
 These factors have made Java one of the most used platforms in corporate environments, running applications in almost every sector. So, if you work for a big company, there’s a high chance that you are writing Java code or that you’re running your code on a JVM.
 
-However, the very thing that makes the Java runtime so performant over time for server applications, the JIT compiler, is the reason why a Java program might be slow to start.  
+However, the very thing that makes the Java runtime so performant over time for server applications, the <abbr title="Just in Time">JIT</abbr> compiler, is the reason why a Java program might be slow to start.  
 The JVM needs to complete a warm-up phase where the bytecode is inspected, translated to hardware-optimized instructions, and finally run.
 This process might take _seconds_ to complete, a very long time in the context of Microservices or Serverless functions.
 
-## AOT to the rescue?
+## <abbr title="Ahead of Time">AOT</abbr> to the rescue?
 
 Not always the case.
 There’s an ongoing effort both within the JVM project ([Project Leyden](https://blogs.oracle.com/javamagazine/post/java-leyden-static-images) and [GraalVM](https://www.graalvm.org/latest/reference-manual/native-image/)) specifically to address startup times for short-lived process, like Serverless functions.
@@ -50,13 +53,16 @@ In order to avoid increased traffic to _Application A_ and to better handle sudd
 
 In this particular scenario, generating a native image can be [really tricky](https://github.com/oracle/graal/issues/2188) so plain Java is the only viable option. We have to deal with cold starts on our own.
 
+This example is an abstraction of real experiences that I had while working for different customers; what follows is my personal journey in analyzing "cold start" problems.
+I wanted to share it with you in the hope it might be useful, and to get some feedback.
+
 ## Default Corretto 11 runtime
 
-### Step 1: Optimize your code
+Let's start from the default runtime provided by AWS: Corretto 11
+
+### 1. Optimize your code
 
 Make sure to initialize expensive (thread-safe) resources outside the `handleRequest` method, in order to reuse resources for subsequent invocations
-
-https://gist.github.com/cbellone/e08808e41d375e5011e3dee6dc2e7347
 
 ```java
 public class Handler implements RequestHandler<ValidationRequest, ValidationResponse> {
@@ -101,7 +107,7 @@ public class Handler implements RequestHandler<ValidationRequest, ValidationResp
 }
 ```
 
-### Step 2: Optimize your runtime
+### 2. Optimize your runtime
 
 If your code is very simple (like the one above) you can decide to disable _incremental JIT compilation_, also known as _Tiered Compilation_.
 By doing so we instruct the JVM to ignore optimizations. The lambda will never reach peak performances at runtime, but at the same time we'll get a quicker startup.
@@ -115,7 +121,7 @@ JAVA_TOOL_OPTIONS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+UseSerial
 
 Read the [official AWS blog post](https://aws.amazon.com/blogs/compute/optimizing-aws-lambda-function-performance-for-java/) for more information.
 
-### Step 3: Result
+### 3. Results
 
 With all this optimization in place, we can now measure a cold start, sending the following _test_ event to the lambda `vies-proxy-11`:
 
@@ -239,13 +245,13 @@ Way better, but maybe we can still shave a couple of ms more
 
 ## AWS SnapStart
 
-A couple of days ago, AWS [announced SnapStart](https://aws.amazon.com/blogs/aws/new-accelerate-your-lambda-functions-with-lambda-snapstart/) at re:Invent.
+Very recently, AWS [announced SnapStart](https://aws.amazon.com/blogs/aws/new-accelerate-your-lambda-functions-with-lambda-snapstart/) at re:Invent.
 
 SnapStart performs a _snapshot_ of the micro-container running the lambda function and then restores it. 
 
 > SnapStart is only available for *x86_64* CPU architecture and might not be compatible with your code. Please check https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html for additional information
 
-### Application initialization
+### 1. Application initialization
 
 Now we can perform a snapshot of the running JVM. So we can also get rid of the application initialization time, right?
 
@@ -257,7 +263,7 @@ as you can see the Application initialization takes more than `2s` (2.86 - 0.563
 
 Let's modify the code to try to include these objects in the snapshot as well.
 
-### Lifecycle hooks
+### 2. Lifecycle hooks
 
 SnapStart supports [CRaC](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-runtime-hooks.html) checkpoint API, so let's modify the Lambda Handler accordingly:
 
@@ -291,7 +297,7 @@ public class Handler implements RequestHandler<ValidationRequest, ValidationResp
 
 full source code available [here](https://github.com/claranet-ch/java-lambda-optimization/blob/main/software/src/main/java/com/claranet/vies/proxy/Handler.java)
 
-### Results
+### 3. Results
 
 After enabling SnapStart and publishing a new version, let's run our usual test:
 
@@ -313,7 +319,7 @@ While increasing allocated RAM to `2048MB` results in:
 
 ## Conclusions
 
-Cold start can be really an issue for user-facing Java serverless functions. There is 
+Cold start can be really an issue for user-facing Java serverless functions. There are some promising technologies which you can already use, but they cannot work in all cases. 
 
 If you can go _native_ using AOT and GraalVM, then GO FOR IT, as it is probably the best available option right now.  
 
