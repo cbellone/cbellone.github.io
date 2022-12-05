@@ -34,11 +34,12 @@ This process might take _seconds_ to complete, a very long time in the context o
 
 ## <abbr title="Ahead of Time">AOT</abbr> to the rescue?
 
-Not always the case.
 There’s an ongoing effort both within the JVM project ([Project Leyden](https://blogs.oracle.com/javamagazine/post/java-leyden-static-images) and [GraalVM](https://www.graalvm.org/latest/reference-manual/native-image/)) specifically to address startup times for short-lived process, like Serverless functions.
+
 Problem solved?
-Yes, absolutely. If your stack is compatible with AOT and native image, by all means GO FOR IT.
-But that’s not always the case. Let me clarify that with an example.
+Yes, absolutely. If your stack is compatible with AOT and native image, by all means GO FOR IT. But that’s not always the case.
+
+Let me clarify that with an example.
 
 ### Hello, SOAP (jax-ws) client
 
@@ -54,7 +55,7 @@ In order to avoid increased traffic to _Application A_ and to better handle sudd
 In this particular scenario, generating a native image can be [really tricky](https://github.com/oracle/graal/issues/2188) so plain Java is the only viable option. We have to deal with cold starts on our own.
 
 This example is an abstraction of real experiences that I had while working for different customers; what follows is my personal journey in analyzing "cold start" problems.
-I wanted to share it with you in the hope it might be useful, and to get some feedback.
+I wanted to share it with you, and with my "future self" in the hope it might be useful, and to get some feedback.
 
 ## Default Corretto 11 runtime
 
