@@ -18,18 +18,21 @@ toc:
 
 ## Introduction
 
-Java is one of the most popular platforms available today. Despite its age (Java is now 27 years old and counting) it continues to offer one of the most performant runtime platforms available on the market.
-Its grammar can be perceived as _verbose_, its _strongly typed_ nature _difficult_ for newbies, but for a small effort you can leverage the JVM (Java Virtual Machine), a platform that:
+Java is one of the most popular platforms available today. Despite its age (27 years old) it continues to offer one of the most performant runtime platforms available on the market.
+Its grammar can be perceived as _verbose_, its _strongly typed_ nature _difficult_ for newbies, but if you get past that you can leverage the JVM (Java Virtual Machine), a platform that:
 
-- Constantly improves its efficiency and performance at runtime, thanks to continuous profiling and its multi-stage JIT (Just in Time) compiler
+- Constantly improves its efficiency and performance at runtime, thanks to continuous profiling and its multi-stage <abbr title="Just in Time">JIT</abbr> compiler
 - Is available on virtually all possible (server) hardware/architectures out there
 - Has a strict “backwards compatibility contract”: the latest version of the JVM can still run bytecode compiled 27 years ago, at least in theory
 - Has a vibrant community: you can always find an User Group (JUG) close to your location and leverage a huge ecosystem of OSS libraries/frameworks/applications
 
 These factors have made Java one of the most used platforms in corporate environments, running applications in almost every sector. So, if you work for a big company, there’s a high chance that you are writing Java code or that you’re running your code on a JVM.
 
-However, the very thing that makes the Java runtime so performant over time for server applications, the <abbr title="Just in Time">JIT</abbr> compiler, is the reason why a Java program might be slow to start.  
-The JVM needs to complete a warm-up phase where the bytecode is inspected, translated to hardware-optimized instructions, and finally run.
+## The Challenge with Serverless Functions
+
+However, the very thing that makes the Java runtime so performant over time for server applications, the <abbr title="Just in Time">JIT</abbr> compiler, is the reason why a Java program might be too slow to start in a Serverless environment.  
+The JVM needs to complete a warm-up phase where the bytecode is inspected multiple times, optimized, translated to hardware-specific instructions, and finally run.
+
 This process might take _seconds_ to complete, a very long time in the context of Microservices or Serverless functions.
 
 ## <abbr title="Ahead of Time">AOT</abbr> to the rescue?
@@ -37,9 +40,9 @@ This process might take _seconds_ to complete, a very long time in the context o
 There’s an ongoing effort both within the JVM project ([Project Leyden](https://blogs.oracle.com/javamagazine/post/java-leyden-static-images) and [GraalVM](https://www.graalvm.org/latest/reference-manual/native-image/)) specifically to address startup times for short-lived process, like Serverless functions.
 
 Problem solved?
-Yes, absolutely. If your stack is compatible with AOT and native image, by all means GO FOR IT. But that’s not always the case.
+Yes, absolutely. If your stack is compatible with AOT and native image, by all means GO FOR IT.
 
-Let me clarify that with an example.
+But that’s not always the case. Let me clarify that with an example.
 
 ### Hello, SOAP (jax-ws) client
 
@@ -54,7 +57,7 @@ In order to avoid increased traffic to _Application A_ and to better handle sudd
 
 In this particular scenario, generating a native image can be [really tricky](https://github.com/oracle/graal/issues/2188) so plain Java is the only viable option. We have to deal with cold starts on our own.
 
-This example is an abstraction of real experiences that I had while working for different customers; what follows is my personal journey in analyzing "cold start" problems.
+Note: This example is an abstraction of real experiences that I had while working for different customers; what follows is my personal journey in analyzing "cold start" problems.
 I wanted to share it with you, and with my "future self" in the hope it might be useful, and to get some feedback.
 
 ## Default Corretto 11 runtime
@@ -135,8 +138,8 @@ With all this optimization in place, we can now measure a cold start, sending th
 
 ![Cold start - JRE 11 default](/images/cold_start/001_vies-proxy-11-base.png)
 
-- Init duration: `1.57 s`
-- Duration: `0.8 s`
+- Init duration: `1.57s`
+- Duration: `800ms`
 
 Not that bad as starting point, considering that we have allocated just 512MB of RAM.
 
@@ -218,11 +221,14 @@ wow, that's disappointing. However, if we increase allocated RAM to `2048MB` num
 - Init duration (from Tracing) : `2.27s`
 - Duration: `3.67s`
 
-60% improvement on the previous cold start, but still more than the default JVM.
+~60% improvement compared to the `512MB` configuration, but still more than the default JVM. Clearly this is not the way to go.
 
 ## JRE 19 (custom runtime)
 
 It is also possible to run our JRE 19 as a custom runtime. This will remove the overhead of running another virtualized environment.
+We can reuse the content of the Dockerfile to create our custom runtime. 
+
+See https://github.com/claranet-ch/java-lambda-optimization/blob/main/infrastructure/src/main/java/com/claranet/vies/proxy/stack/ViesProxyStack.java#L79-L105
 
 > Custom runtimes are only available on `x86_64` CPU architecture
 
@@ -242,7 +248,7 @@ For the record, increasing the allocated RAM to `2048MB` we get:
 - Init duration (from Tracing) : `852ms`
 - Duration: `972ms`
 
-Way better, but maybe we can still shave a couple of ms more 
+Way better, but maybe we try something else to reduce startup times even more. 
 
 ## AWS SnapStart
 
