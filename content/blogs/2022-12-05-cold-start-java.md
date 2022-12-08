@@ -37,7 +37,8 @@ This process might take _seconds_ to complete, a very long time in the context o
 
 ## <abbr title="Ahead of Time">AOT</abbr> to the rescue?
 
-There’s an ongoing effort both within the JVM project ([Project Leyden](https://blogs.oracle.com/javamagazine/post/java-leyden-static-images) and [GraalVM](https://www.graalvm.org/latest/reference-manual/native-image/)) specifically to address startup times for short-lived process, like Serverless functions.
+There are ongoing efforts both within the JVM project ([Project Leyden](https://blogs.oracle.com/javamagazine/post/java-leyden-static-images)) and outside of it ([GraalVM](https://www.graalvm.org/latest/reference-manual/native-image/)) having, among other goals, the purpose of addressing the startup times for short-lived processes, like Serverless functions.
+GraalVM's `native-image` can be already used today, as a stand-alone tool or using compatible frameworks such as [Quarkus](https://quarkus.io/guides/amazon-lambda), [Spring](https://www.graalvm.org/22.2/reference-manual/native-image/guides/build-spring-boot-app-into-native-executable/) and others.
 
 Problem solved?
 Yes, absolutely. If your stack is compatible with AOT and native image, by all means GO FOR IT.
@@ -57,12 +58,20 @@ In order to avoid increased traffic to _Application A_ and to better handle sudd
 
 In this particular scenario, generating a native image can be [really tricky](https://github.com/oracle/graal/issues/2188) so plain Java is the only viable option. We have to deal with cold starts on our own.
 
-Note: This example is an abstraction of real experiences that I had while working for different customers; what follows is my personal journey in analyzing "cold start" problems.
-I wanted to share it with you, and with my "future self" in the hope it might be useful, and to get some feedback.
+Note: This example is an abstraction of real experiences that I have while working for different customers at [Claranet Switzerland](https://www.claranet.ch/) (btw [we're hiring](https://www.claranet.ch/careers/vacancies)!);
+what follows is my personal journey in analyzing "cold start" problems.
+I wanted to share it with you, and with my "future self", in the hope it might be useful, and to get some feedback.
 
 ## Default Corretto 11 runtime
 
 Let's start from the default runtime provided by AWS: Corretto 11
+
+A first baseline test reveals the following average times with `512MB` of allocated RAM:
+
+- Init duration: `2.09s`
+- Duration: `860ms`
+
+That's unacceptable by modern standards, so let's start reducing those times!
 
 ### 1. Optimize your code
 
@@ -111,19 +120,24 @@ public class Handler implements RequestHandler<ValidationRequest, ValidationResp
 }
 ```
 
+this **won't help** with startup times, but it will be extremely useful for subsequent invocations of the same function.
+
 ### 2. Optimize your runtime
 
 If your code is very simple (like the one above) you can decide to disable _incremental JIT compilation_, also known as _Tiered Compilation_.
 By doing so we instruct the JVM to ignore optimizations. The lambda will never reach peak performances at runtime, but at the same time we'll get a quicker startup.
 This is a good compromise in this case, as the task is very simple and short-lived by design.
+Read the [official AWS blog post](https://aws.amazon.com/blogs/compute/optimizing-aws-lambda-function-performance-for-java/) for more information.
 
-To do that, you can set the following environment variable in the lambda configuration:
+You can also decide to use the _Serial Garbage Collector_ (SerialGC) instead of the default _G1_.
+Lambda functions are designed to be short-lived and single-threaded, so there's no point in using a powerful Garbage Collector if your application is not supposed to be alive for more than a couple of minutes.
+More info on the [official Java documentation](https://docs.oracle.com/en/java/javase/11/gctuning/available-collectors.html#GUID-9E4A6B11-BB94-424F-90EF-401287A1C333)
+
+You can apply these modifications by adding the following environment variable in the lambda configuration:
 
 ```shell
 JAVA_TOOL_OPTIONS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+UseSerialGC"
 ```
-
-Read the [official AWS blog post](https://aws.amazon.com/blogs/compute/optimizing-aws-lambda-function-performance-for-java/) for more information.
 
 ### 3. Results
 
@@ -144,8 +158,6 @@ With all this optimization in place, we can now measure a cold start, sending th
 Not that bad as starting point, considering that we have allocated just 512MB of RAM.
 
 But **we have to do better**, since the lambda execution time will have a direct impact on the end-user experience.
-
-
 
 ## JRE 19 (Docker runtime)
 
@@ -216,18 +228,17 @@ Let's run the `vies-proxy-19` function with the same payload as before
 - Init duration (from Tracing) : `3.72s`
 - Duration: `9.6s`
 
-wow, that's disappointing. However, if we increase allocated RAM to `2048MB` numbers improve:
+wow, that's disappointing. 
 
-- Init duration (from Tracing) : `2.27s`
-- Duration: `3.67s`
-
-~60% improvement compared to the `512MB` configuration, but still more than the default JVM. Clearly this is not the way to go.
+However, further load testing resulted in faster average init times, especially when increasing the allocated RAM to `2048MB` (which in turn increases the available [vCPUs](https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-memory-console)) 
+My guess is that the Docker image is somehow pulled and cached in a closer location when you start invoking your lambda multiple times.
+You can see detailed results at the end of the post.
 
 ## JRE 19 (custom runtime)
 
-It is also possible to run our JRE 19 as a custom runtime. This will remove the overhead of running another virtualized environment.
-We can reuse the content of the Dockerfile to create our custom runtime. 
+It is also possible to run our JRE 19 as a custom runtime. This will hopefully remove the overhead of pulling the Docker image when the host for our lambda changes.
 
+We can reuse the instructions we already wrote in the Dockerfile to build the custom runtime. 
 See https://github.com/claranet-ch/java-lambda-optimization/blob/main/infrastructure/src/main/java/com/claranet/vies/proxy/stack/ViesProxyStack.java#L79-L105
 
 > Custom runtimes are only available on `x86_64` CPU architecture
@@ -248,7 +259,7 @@ For the record, increasing the allocated RAM to `2048MB` we get:
 - Init duration (from Tracing) : `852ms`
 - Duration: `972ms`
 
-Way better, but maybe we try something else to reduce startup times even more. 
+Way better, but maybe we can try a new approach to reduce startup times even more. 
 
 ## AWS SnapStart
 
@@ -324,12 +335,28 @@ While increasing allocated RAM to `2048MB` results in:
 - Duration: `238ms`
 
 
-## Conclusions
+## Comparing results
+
+I have run a benchmark using [AWS Lambda Power Tuning](https://github.com/alexcasalboni/aws-lambda-power-tuning/pull/177)
+and then collected the resulting times using [Logs Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html).
+
+Here's the resulting times:
+
+<div class="mb-5">
+    <a href="/images/cold_start/results.png" title="Open in a new Tab" target="_blank">
+        <img alt="Results" src="/images/cold_start/results.png" class="img-fluid" >
+    </a>
+</div>
+
+More info, including queries to retrieve data, can be found in [this spreadsheet](/attachments/cold_start/cold-start-timing-details.xlsx)
+
+## Conclusion
 
 Cold start can be really an issue for user-facing Java serverless functions. There are some promising technologies which you can already use, but they cannot work in all cases. 
 
 If you can go _native_ using AOT and GraalVM, then GO FOR IT, as it is probably the best available option right now.  
 
-If you can't, I hope that this post can give you some hints and a blueprint for a process you can follow.
+If you can't, the best option right now is SnapStart. But it comes with constraints and limitations.
 
+In any case I hope that this post can give you some hints and a blueprint for a process you can follow.
 If you want to experiment yourself with the code, you can find it here: https://github.com/claranet-ch/java-lambda-optimization
