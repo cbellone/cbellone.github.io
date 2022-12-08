@@ -9,11 +9,11 @@ tags:
 - AWS Lambda
 - Cold start
 image: /images/cold_start/taylor-vick-M5tzZtFCOfs-unsplash.jpg
-description: ""
+description: "How to tackle cold start for your Java Serverless Function if your code is not compatible with AOT native-image"
 toc:
 ---
 <div class="text-center mb-3">
-    <small>Photo by <a href="https://unsplash.com/@tvick?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Taylor Vick</a> on <a href="https://unsplash.com/s/photos/network?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></small>
+    <small>Photo by <a href="https://unsplash.com/@tvick?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText" rel="noopener" target="_blank">Taylor Vick</a> on <a href="https://unsplash.com/s/photos/network?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></small>
 </div>
 
 ## Introduction
@@ -165,12 +165,12 @@ Recently the JVM dev team put a lot of effort into reducing startup time of Java
 AWS Lambda supports running custom Docker images, so let's go ahead and try to build a custom image.
 You can find the full Dockerfile [here](https://github.com/claranet-ch/java-lambda-optimization/blob/main/docker/jdk19/Dockerfile).
 
-### Multi-stage is better
+### 1. Multi-stage is better
 
 We'll build a [multi-stage](https://docs.docker.com/build/building/multi-stage/) Dockerfile.
 The resulting image will have fewer layers and therefore will be more compact in size, resulting in a reduced cold start.
 
-### 1. Build a smaller JRE
+### 2. Build a smaller JRE
 
 JDK9 introduced `jlink`, a tool that allows us to build a smaller version of the JRE. We can include only the modules we need:
 
@@ -192,7 +192,7 @@ RUN jlink --verbose \
     --add-modules $(cat /tmp/jre-deps.info)
 ```
 
-### 2. Use (App) Class-Data Sharing
+### 3. Use (App) Class-Data Sharing
 
 #### Class-Data sharing (CDS)
 
@@ -217,7 +217,7 @@ RUN export AWS_LAMBDA_RUNTIME_API="localhost:8080" &&\
 
 the process will exit with an error (ignored by the command), but the important thing for us is to process as many classes as we can.
 
-### 3. Results
+### 4. Results
 
 Let's run the `vies-proxy-19` function with the same payload as before
 
@@ -265,32 +265,34 @@ Way better, but maybe we can try a new approach to reduce startup times even mor
 
 Very recently, AWS [announced SnapStart](https://aws.amazon.com/blogs/aws/new-accelerate-your-lambda-functions-with-lambda-snapstart/) at re:Invent.
 
-SnapStart performs a _snapshot_ of the micro-container running the lambda function and then restores it. 
+SnapStart is a new deployment process that starts up the micro-container running the function, waits for its initialization, and then performs a _snapshot_ of its state. When the lambda function is invoked, SnapStart will restore the already initialized snapshot instead of initializing the JVM again. 
 
 > SnapStart is only available for *x86_64* CPU architecture and might not be compatible with your code. Please check https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html for additional information
 
 ### 1. Application initialization
 
-Now we can perform a snapshot of the running JVM. So we can also get rid of the application initialization time, right?
+Since we have the opportunity to _start_ our lambda before taking the snapshot, we can manage to fully initialize the SOAP client before the snapshot is taken, in order to reduce the _application initialization_ time.
 
+What is this _application initialization time_?
 Let's take a closer look at the tracing for the latest invocation of `vies-proxy-19-custom`:
 
 ![SOAP client initialization cost](/images/cold_start/005_initialization-cost.png)
 
-as you can see the Application initialization takes more than `2s` (2.86 - 0.563). This might have something to do with the SOAP client initialization and the proxies it generates to generate the request and parse the response.
+_Application initialization_ is everything happening between "Initialization" (cold start) and "## handleRequest". That's more than `2s` (2.86 - 0.563) in the screenshot!
+For example, this might be related with the SOAP client initialization and all the dynamic proxies it generates to perform the request and parse the response.
 
 Let's modify the code to try to include these objects in the snapshot as well.
 
 ### 2. Lifecycle hooks
 
-SnapStart supports [CRaC](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-runtime-hooks.html) checkpoint API, so let's modify the Lambda Handler accordingly:
+SnapStart supports [CRaC](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-runtime-hooks.html) checkpoint API, so we can modify the Lambda Handler to simulate a request before the snapshot happens:
 
 ```java
 // [...]
 import org.crac.Core;
 import org.crac.Resource;
 // [...]
-public class Handler implements RequestHandler<ValidationRequest, ValidationResponse>, Resource {
+public class Handler implements RequestHandler<ValidationRequest, ValidationResponse>, Resource { // <-- implements org.crac.Resource
 
     public Handler() {
         Core.getGlobalContext().register(this); // <-- register snapshot listener
@@ -326,21 +328,21 @@ After enabling SnapStart and publishing a new version, let's run our usual test:
 
 Sub-second response time! Outstanding! :tada:
 
-For reference, not optimized code (i.e. without snapshot listener) results in:
+For reference, not optimized code (i.e. without snapshot listener) results in a faster restore time but slower response time overall:
 - Restore duration : `331ms`
 - Duration: `614ms`
  
 While increasing allocated RAM to `2048MB` results in:
-- Restore duration : `275ms`
+- Restore duration : `275ms` (most likely due to the increased I/O and CPU resources)
 - Duration: `238ms`
 
 
 ## Comparing results
 
-I have run a benchmark using [AWS Lambda Power Tuning](https://github.com/alexcasalboni/aws-lambda-power-tuning/pull/177)
-and then collected the resulting times using [Logs Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html).
+I have run a benchmark using a new feature of [AWS Lambda Power Tuning](https://github.com/alexcasalboni/aws-lambda-power-tuning/pull/177) which hasn't been released yet, 
+and then collected the resulting times using [Logs Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html). Will do an additional blog post to explain this process soon. Stay tuned :sweat_smile:
 
-Here's the resulting times:
+Here are the resulting times:
 
 <div class="mb-5">
     <a href="/images/cold_start/results.png" title="Open in a new Tab" target="_blank">
