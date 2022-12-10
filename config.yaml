@@ -51,7 +51,6 @@ Menus:
     #   url: /#
     #   parent: dropdown
     #   weight: 2
-
 params:
   title: "Celestino's profile"
   description: Just sharing my experience here
@@ -298,3 +297,9 @@ params:
   # List pages like blogs and posts
   listPages:
     disableFeaturedImage: false
+
+  giscus:
+    repo: cbellone/cbellone.github.io
+    repoID: MDEwOlJlcG9zaXRvcnkyMTc5Njc4OA==
+    category: Comments
+    categoryID: DIC_kwDOAUyXtM4CTASk
