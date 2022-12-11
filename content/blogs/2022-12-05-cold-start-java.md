@@ -14,7 +14,7 @@ summary: "Cold start can be a big issue with Java Serverless Functions. Native-i
 toc:
 ---
 <div class="text-center mb-3">
-    <small>Photo by <a href="https://unsplash.com/@tvick?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText" rel="noopener" target="_blank">Taylor Vick</a> on <a href="https://unsplash.com/s/photos/network?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a></small>
+    <small>Photo by {{< targetblank  href="https://unsplash.com/@tvick?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText" text="Taylor Vick" >}} on {{< targetblank  href="https://unsplash.com/s/photos/network?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText" text="Unsplash" >}}</small>
 </div>
 
 ## Introduction
@@ -38,28 +38,28 @@ This process might take _seconds_ to complete, a very long time in the context o
 
 ## <abbr title="Ahead of Time">AOT</abbr> to the rescue?
 
-There are ongoing efforts both within the JVM project ([Project Leyden](https://blogs.oracle.com/javamagazine/post/java-leyden-static-images)) and outside of it ([GraalVM](https://www.graalvm.org/latest/reference-manual/native-image/)) having, among other goals, the purpose of addressing the startup times for short-lived processes, like Serverless functions.
-GraalVM's `native-image` can be already used today, as a stand-alone tool or using compatible frameworks such as [Quarkus](https://quarkus.io/guides/amazon-lambda), [Spring](https://www.graalvm.org/22.2/reference-manual/native-image/guides/build-spring-boot-app-into-native-executable/) and others.
+There are ongoing efforts both within the JVM project ({{< targetblank  href="https://blogs.oracle.com/javamagazine/post/java-leyden-static-images" text="Project Leyden" >}}) and outside of it ({{< targetblank  href="https://www.graalvm.org/latest/reference-manual/native-image/" text="GraalVM" >}}) having, among other goals, the purpose of addressing the startup times for short-lived processes, like Serverless functions.
+GraalVM's `native-image` can be already used today, as a stand-alone tool or using compatible frameworks such as {{< targetblank  href="https://quarkus.io/guides/amazon-lambda" text="Quarkus" >}}, {{< targetblank  href="https://www.graalvm.org/22.2/reference-manual/native-image/guides/build-spring-boot-app-into-native-executable/" text="Spring" >}} and others.
 
 Problem solved?
 Yes, absolutely. If your stack is compatible with AOT and native image, by all means GO FOR IT.
 
 But that’s not always the case. Let me clarify that with an example.
 
-### Hello, SOAP (jax-ws) client
+### Hello, SOAP (JAX-WS) client
 
 Let's assume that:
 
 - You work for a big company, with rules and processes in place concerning which technologies/libraries/frameworks can be used.
-- You maintain a monolithic Java application _Application A_, whose code has been recently migrated to Java 11. This application is a billing system, which validates the VAT Numbers of EU-based commercial customers using the [VIES SOAP WebService](https://ec.europa.eu/taxation_customs/vies/#/vat-validation). The implementation is done using JAX-WS
+- You maintain a monolithic Java application _Application A_, whose code has been recently migrated to Java 11. This application is a billing system, which validates the VAT Numbers of EU-based commercial customers using the {{< targetblank  href="https://ec.europa.eu/taxation_customs/vies/#/vat-validation" text="VIES SOAP WebService" >}}. The implementation is done using JAX-WS
 - _Application A_ is deployed on AWS
 
 There is now another application being developed in your organization - _Application B_, a web shop - which needs to perform the same validation.
 In order to avoid increased traffic to _Application A_ and to better handle sudden traffic spikes you decide to extract the logic and create an AWS Lambda function.
 
-In this particular scenario, generating a native image can be [really tricky](https://github.com/oracle/graal/issues/2188) so plain Java is the only viable option. We have to deal with cold starts on our own.
+In this particular scenario, generating a native image can be {{< targetblank  href="https://github.com/oracle/graal/issues/2188" text="really tricky" >}} so plain Java is the only viable option. We have to deal with cold starts on our own.
 
-Note: This example is an abstraction of real experiences that I have while working for different customers at [Claranet Switzerland](https://www.claranet.ch/) (btw [we're hiring](https://www.claranet.ch/careers/vacancies)!);
+Note: This example is an abstraction of real experiences that I have while working for different customers at {{< targetblank  href="https://www.claranet.ch/" text="Claranet Switzerland" >}} (btw {{< targetblank  href="https://www.claranet.ch/careers/vacancies" text="we're hiring" >}}!);
 what follows is my personal journey in analyzing "cold start" problems.
 I wanted to share it with you, and with my "future self", in the hope it might be useful, and to get some feedback.
 
@@ -128,11 +128,11 @@ this **won't help** with startup times, but it will be extremely useful for subs
 If your code is very simple (like the one above) you can decide to disable _incremental JIT compilation_, also known as _Tiered Compilation_.
 By doing so we instruct the JVM to ignore optimizations. The lambda will never reach peak performances at runtime, but at the same time we'll get a quicker startup.
 This is a good compromise in this case, as the task is very simple and short-lived by design.
-Read the [official AWS blog post](https://aws.amazon.com/blogs/compute/optimizing-aws-lambda-function-performance-for-java/) for more information.
+Read the {{< targetblank  href="https://aws.amazon.com/blogs/compute/optimizing-aws-lambda-function-performance-for-java/" text="official AWS blog post" >}} for more information.
 
 You can also decide to use the _Serial Garbage Collector_ (SerialGC) instead of the default _G1_.
 Lambda functions are designed to be short-lived and single-threaded, so there's no point in using a powerful Garbage Collector if your application is not supposed to be alive for more than a couple of minutes.
-More info on the [official Java documentation](https://docs.oracle.com/en/java/javase/11/gctuning/available-collectors.html#GUID-9E4A6B11-BB94-424F-90EF-401287A1C333)
+More info on the {{< targetblank  href="https://docs.oracle.com/en/java/javase/11/gctuning/available-collectors.html#GUID-9E4A6B11-BB94-424F-90EF-401287A1C333" text="official Java documentation" >}}
 
 You can apply these modifications by adding the following environment variable in the lambda configuration:
 
@@ -164,11 +164,11 @@ But **we have to do better**, since the lambda execution time will have a direct
 
 Recently the JVM dev team put a lot of effort into reducing startup time of Java programs, so it makes definitely sense to run our lambda with the latest (stable) runtime.   
 AWS Lambda supports running custom Docker images, so let's go ahead and try to build a custom image.
-You can find the full Dockerfile [here](https://github.com/claranet-ch/java-lambda-optimization/blob/main/docker/jdk19/Dockerfile).
+You can find the full Dockerfile {{< targetblank  href="https://github.com/claranet-ch/java-lambda-optimization/blob/main/docker/jdk19/Dockerfile" text="here" >}}.
 
 ### 1. Multi-stage is better
 
-We'll build a [multi-stage](https://docs.docker.com/build/building/multi-stage/) Dockerfile.
+We'll build a {{< targetblank  href="https://docs.docker.com/build/building/multi-stage/" text="multi-stage" >}} Dockerfile.
 The resulting image will have fewer layers and therefore will be more compact in size, resulting in a reduced cold start.
 
 ### 2. Build a smaller JRE
@@ -197,7 +197,7 @@ RUN jlink --verbose \
 
 #### Class-Data sharing (CDS)
 
-Since version 12, the JVM ships with a pre-generated [Shared Archive](https://docs.oracle.com/en/java/javase/19/vm/class-data-sharing.html) of system classes.
+Since version 12, the JVM ships with a pre-generated {{< targetblank  href="https://docs.oracle.com/en/java/javase/19/vm/class-data-sharing.html" text="Shared Archive" >}} of system classes.
 This archive contains information ready to be used by the JVM, reducing CPU usage, memory usage, and startup time.
 Since we've generated a trimmed version of the JRE, we need to regenerate the Shared Archive:
 
@@ -231,7 +231,7 @@ Let's run the `vies-proxy-19` function with the same payload as before
 
 wow, that's disappointing. 
 
-However, further load testing resulted in faster average init times, especially when increasing the allocated RAM to `2048MB` (which in turn increases the available [vCPUs](https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-memory-console)) 
+However, further load testing resulted in faster average init times, especially when increasing the allocated RAM to `2048MB` (which in turn increases the available {{< targetblank  href="https://docs.aws.amazon.com/lambda/latest/dg/configuration-function-common.html#configuration-memory-console" text="vCPUs" >}}) 
 My guess is that the Docker image is somehow pulled and cached in a closer location when you start invoking your lambda multiple times.
 You can see detailed results at the end of the post.
 
@@ -264,7 +264,7 @@ Way better, but maybe we can try a new approach to reduce startup times even mor
 
 ## AWS SnapStart
 
-Very recently, AWS [announced SnapStart](https://aws.amazon.com/blogs/aws/new-accelerate-your-lambda-functions-with-lambda-snapstart/) at re:Invent.
+Very recently, AWS {{< targetblank  href="https://aws.amazon.com/blogs/aws/new-accelerate-your-lambda-functions-with-lambda-snapstart/" text="announced SnapStart" >}} at re:Invent.
 
 SnapStart is a new deployment process that starts up the micro-container running the function, waits for its initialization, and then performs a _snapshot_ of its state. When the lambda function is invoked, SnapStart will restore the already initialized snapshot instead of initializing the JVM again. 
 
@@ -286,7 +286,7 @@ Let's modify the code to try to include these objects in the snapshot as well.
 
 ### 2. Lifecycle hooks
 
-SnapStart supports [CRaC](https://docs.aws.amazon.com/lambda/latest/dg/snapstart-runtime-hooks.html) checkpoint API, so we can modify the Lambda Handler to simulate a request before the snapshot happens:
+SnapStart supports {{< targetblank  href="https://docs.aws.amazon.com/lambda/latest/dg/snapstart-runtime-hooks.html" text="CRaC" >}} checkpoint API, so we can modify the Lambda Handler to simulate a request before the snapshot happens:
 
 ```java
 // [...]
@@ -316,7 +316,7 @@ public class Handler implements RequestHandler<ValidationRequest, ValidationResp
 }    
 ```
 
-full source code available [here](https://github.com/claranet-ch/java-lambda-optimization/blob/main/software/src/main/java/com/claranet/vies/proxy/Handler.java)
+full source code available {{< targetblank  href="https://github.com/claranet-ch/java-lambda-optimization/blob/main/software/src/main/java/com/claranet/vies/proxy/Handler.java" text="here" >}}
 
 ### 3. Results
 
@@ -340,8 +340,8 @@ While increasing allocated RAM to `2048MB` results in:
 
 ## Comparing results
 
-I have run a benchmark using a new feature of [AWS Lambda Power Tuning](https://github.com/alexcasalboni/aws-lambda-power-tuning/pull/177) which hasn't been released yet, 
-and then collected the resulting times using [Logs Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html). Will do an additional blog post to explain this process soon. Stay tuned :sweat_smile:
+I have run a benchmark using a new feature of {{< targetblank  href="https://github.com/alexcasalboni/aws-lambda-power-tuning/pull/177" text="AWS Lambda Power Tuning" >}} which hasn't been released yet, 
+and then collected the resulting times using {{< targetblank  href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html" text="Logs Insights" >}}. Will do an additional blog post to explain this process soon. Stay tuned :sweat_smile:
 
 Here are the resulting times:
 
@@ -351,7 +351,7 @@ Here are the resulting times:
     </a>
 </div>
 
-More info, including queries to retrieve data, can be found in [this spreadsheet](/attachments/cold_start/cold-start-timing-details.xlsx)
+More info, including queries to retrieve data, can be found in {{< targetblank  href="/attachments/cold_start/cold-start-timing-details.xlsx" text="this spreadsheet" >}}
 
 ## Conclusion
 
@@ -362,4 +362,4 @@ If you can go _native_ using AOT and GraalVM, then GO FOR IT, as it is probably 
 If you can't, the best option right now is SnapStart. But it comes with constraints and limitations.
 
 In any case I hope that this post can give you some hints and a blueprint for a process you can follow.
-If you want to experiment yourself with the code, you can find it here: https://github.com/claranet-ch/java-lambda-optimization
+If you want to experiment yourself with the code, you can find it here: {{< targetblank  href="https://github.com/claranet-ch/java-lambda-optimization" text="https://github.com/claranet-ch/java-lambda-optimization" >}}

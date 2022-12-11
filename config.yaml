@@ -1,6 +1,6 @@
 baseURL: https://ticketguy.dev/
 languageCode: en-us
-title: Celestino's blog
+title: The ticket guy
 theme: hugo-profile
 enableEmoji: true
 
@@ -52,8 +52,8 @@ Menus:
     #   parent: dropdown
     #   weight: 2
 params:
-  title: "Celestino's profile"
-  description: Just sharing my experience here
+  title: "The ticket guy"
+  description: Tips from my dev experience
   # staticPath: ""  # The path to serve the static files from
   favicon: "/favicon.ico"
 

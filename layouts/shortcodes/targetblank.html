@@ -1,0 +1,2 @@
+{{/* source: https://adityatelange.in/blog/hugo-external-link-new-tab/ */}}
+<a href="{{ .Get "href" }}" rel="noopener" target="_blank" title="{{ if (.Get "title") }} {{ . }} - {{end}} opens in a new window">{{ .Get "text" }}</a> <small role="presentation" class="fas fa-external-link-alt fa-xs opacity-25 me-1"></small>
