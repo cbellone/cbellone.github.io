@@ -137,7 +137,7 @@ params:
   # About
   about:
     enable: true
-    title: "Why Ticket guy?"
+    title: 'Why "Ticket guy"?'
     image: "/images/me2.jpeg"
     content: |-
       8 years ago I have co-founded an open source project ([Alf.io](https://alf.io)) for managing registration and check-in of attendees at conferences.
