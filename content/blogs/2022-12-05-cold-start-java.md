@@ -9,7 +9,8 @@ tags:
 - AWS Lambda
 - Cold start
 image: /images/cold_start/taylor-vick-M5tzZtFCOfs-unsplash.jpg
-description: "How to tackle cold start for your Java Serverless Function if your code is not compatible with AOT native-image"
+description: "Cold start can be a big issue with Java Serverless Functions. Native-image is an option, but it doesn't work in all cases. Let's explore other possibilities."
+summary: "Cold start can be a big issue with Java Serverless Functions. Native-image is an option, but it doesn't work in all cases. Let's explore other possibilities."
 toc:
 ---
 <div class="text-center mb-3">
