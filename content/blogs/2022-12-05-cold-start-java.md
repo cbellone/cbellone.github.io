@@ -11,6 +11,7 @@ tags:
 image: /images/cold_start/taylor-vick-M5tzZtFCOfs-unsplash.jpg
 description: "Cold start can be a big issue with Java Serverless Functions. Native-image is an option, but it doesn't work in all cases. Let's explore other possibilities."
 summary: "Cold start can be a big issue with Java Serverless Functions. Native-image is an option, but it doesn't work in all cases. Let's explore other possibilities."
+images: ["/images/cold_start/taylor-vick-M5tzZtFCOfs-unsplash.jpg"]
 toc:
 ---
 <div class="text-center mb-3">
