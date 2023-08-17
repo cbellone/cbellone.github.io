@@ -21,6 +21,7 @@ toc:
 [Devoxx Belgium](https://devoxx.be) is a developer community conference held in Antwerp, Belgium. This five-day event is renowed for its content, with researchers, scientists, industry leaders, and fellow developers presenting sessions suitable for diverse audience levels.
 
 It is considered a "must attend" event by the community, and seats are limited. No wonder people cannot wait to secure their ticket!
+
 Tickets are usually available in two batches. Last year, the first batch of tickets was sold in less than 5 minutes, this year for the same batch the ticket sales lasted **30 seconds**.
 
 ## Alf.io and Swicket involvement
