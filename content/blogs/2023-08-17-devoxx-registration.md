@@ -104,7 +104,9 @@ The use of `skip locked` ([reference](https://www.postgresql.org/docs/11/sql-sel
 
 If the query returns the expected number of results, users can proceed to the next step. Otherwise, an HTTP 412 error is triggered.
 
+
 ## Conclusions
+
 
 ### Technical Perspective
 
@@ -114,6 +116,7 @@ However, we will start a code review to optimize the reservation phase. The goal
 In addition to that, we have received a couple of technical feedback which are now marked as [issues](https://github.com/alfio-event/alf.io/issues) on our GitHub repo.
 
 Keep them coming!
+
 
 ### UX Perspective
 
