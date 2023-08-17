@@ -25,7 +25,7 @@ Tickets are usually available in two batches. Last year, the first batch of tick
 
 ## Alf.io and Swicket involvement
 
-Devoxx Belgium chose [Alf.io](https://alf.io), the open source ticket reservation system, as their registration / check-in tool.
+Devoxx Belgium uses [Alf.io](https://alf.io), the open source ticket reservation system, as their registration / check-in tool.
 
 [At Swicket](https://swicket.io), our job is to provide Alf.io (among other tools) "As a Service".
 Swicket is managed by the same people who develop [Alf.io](https://alf.io) and we've been fortunate to serve as registration partner for Devoxx BE for the last couple of years.
