@@ -1,5 +1,5 @@
 ---
-title: "Behind the Scenes of Devoxx Belgium Ticket Sales"
+title: "Behind the Scenes of Devoxx Ticket Sales"
 date: 2023-08-17T12:00:00+0100
 draft: false
 github_link: "https://github.com/alfio-event/alf.io"
@@ -10,8 +10,8 @@ tags:
 - PostgreSQL
 - Performances
 image: /images/devoxxbe/cover-dvbe19.jpg
-description: "How we managed the highest "
-summary: "The first batch of ticket sales for Devoxx Belgium is a really hot moment ."
+description: "How we managed the high load of registrations for Devoxx Belgium"
+summary: "How we managed the high load of registrations for Devoxx Belgium."
 images: ["/images/devoxxbe/cover-dvbe19.jpg"]
 toc:
 ---
