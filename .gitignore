@@ -2,3 +2,4 @@ _site
 .idea
 .hugo_build.lock
 public
+.DS_Store
