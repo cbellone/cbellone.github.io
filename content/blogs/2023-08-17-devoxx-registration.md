@@ -21,22 +21,28 @@ toc:
 [Devoxx Belgium](https://devoxx.be) is a developer community conference held in Antwerp, Belgium. This five-day event is renowed for its content, with researchers, scientists, industry leaders, and fellow developers presenting sessions suitable for diverse audience levels.
 
 It is considered a "must attend" event by the community, and seats are limited. No wonder people cannot wait to secure their ticket!
+Tickets are usually available in two batches. Last year, the first batch of tickets was sold in less than 5 minutes, this year for the same batch the ticket sales lasted **30 seconds**.
 
-## Swicket's involvement
+## Alf.io and Swicket involvement
 
-[At Swicket](https://swicket.io), we've been fortunate to serve as the chosen registration partner for Devoxx BE for the last couple of years.
+Devoxx Belgium chose [Alf.io](https://alf.io), the open source ticket reservation system, as their registration / check-in tool.
+
+[At Swicket](https://swicket.io), our job is to provide Alf.io (among other tools) "As a Service".
+Swicket is managed by the same people who develop [Alf.io](https://alf.io) and we've been fortunate to serve as registration partner for Devoxx BE for the last couple of years.
+
 
 ## The Swicket Platform
 
-Swicket offers a comprehensive solution for event organizers to efficiently manage attendees for their events.
+[Swicket](https://swicket.io) offers a comprehensive solution for event organizers to efficiently manage attendees for their events.
 
 For each event organizer, we create a dedicated namespace within our multi-tenant Kubernetes cluster, plus a dedicated database (whose content is property of the organizer as stated in our privacy policy) hosted on one of our shared PostgreSQL instances.
 Our Kubernetes cluster has strict network policies in place to prevent unauthorized "lateral movements" between namespaces.
 
 Within the customer namespace, we deploy [Alf.io](https://alf.io) to handle registrations alongside other proprietary components that provide additional functionalities, including:
-- Integration with external invoicing systems
-- Integration with video conferencing software/services (Zoom, GoToWebinar, BigBlueButton)
-- Exhibitor Portal for lead collection during the event
+
+- Integration module with external invoicing systems
+- Integration module with video conferencing software/services (Zoom, GoToWebinar, BigBlueButton)
+- Swicket's Exhibitor Portal for lead collection during the event
 
 For those curious, this is a deployment diagram that visualize our infrastructure on Google Cloud Platform:
 
@@ -55,7 +61,7 @@ Our node pool is composed by `e2-standard-4` instances (4vCPUs, 16GB of RAM), an
 To manage the high load, we have configured the Alf.io deployment to have 4 replicas, spread across a total of 3 nodes.
 The Alf.io container is assigned a memory request/limit of 1024MB and no CPU requests/limit, ensuring sufficient CPU resources for fast container restarts in case of errors.
 
-## Managing the Load
+## Everything happened in 30 seconds
 
 During the critical **30-second interval** following the start of ticket sales (9:00:00 to 9:00:30 CEST), we received a total of **6'129** user-generated requests (excluding polling requests originated by alf.io itself):
 
@@ -111,6 +117,7 @@ If the query returns the expected number of results, users can proceed to the ne
 ### Technical Perspective
 
 We have proven that we are on the right path for delivering a smooth experience even under big loads.
+Since the very beginning we have chosen a simple design and delegated as much work as possible to the database, and this has proven to be a good choice for scalability and performance.
 
 However, we will start a code review to optimize the reservation phase. The goal is to minimize errors under load and improve performances.
 In addition to that, we have received a couple of technical feedback which are now marked as [issues](https://github.com/alfio-event/alf.io/issues) on our GitHub repo.
