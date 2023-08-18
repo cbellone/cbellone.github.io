@@ -24,12 +24,17 @@ It is considered a "must attend" event by the community, and seats are limited. 
 
 Tickets are usually available in two batches. Last year, the first batch of tickets was sold in less than 5 minutes, this year for the same batch the ticket sales lasted **30 seconds**.
 
-## Alf.io and Swicket involvement
+### Alf.io, the open source ticket reservation system
 
-Devoxx Belgium uses [Alf.io](https://alf.io), the open source ticket reservation system, as their registration / check-in tool.
+[Alf.io](https://alf.io) is a free and open source event attendance management system, developed for event organizers who care about privacy, security and fair pricing policy for their customers.
+It features an ecosystem of tools to cover the lifecycle of an event from ticket distribution, to event management, to reporting.
+
+Several conferences in the Devoxx Network, including Devoxx Belgium, use [Alf.io](https://alf.io) as their registration / check-in tool.
+
+### Swicket's involvement
 
 [At Swicket](https://swicket.io), our job is to provide Alf.io (among other tools) "As a Service".
-Swicket is managed by the same people who develop [Alf.io](https://alf.io) and we've been fortunate to serve as registration partner for Devoxx BE for the last couple of years.
+Swicket is managed by the same people who develop [Alf.io](https://alf.io) and we've been fortunate to serve as registration partner for various conferences of the Devoxx network (Belgium, United Kingdom, France, Morocco) for the last couple of years.
 
 
 ## The Swicket Platform
@@ -57,10 +62,24 @@ For those curious, this is a deployment diagram that visualize our infrastructur
 
 Our node pool is composed by `e2-standard-4` instances (4vCPUs, 16GB of RAM), and we use the smallest Cloud SQL PostgreSQL instances available (1vCPU, 3.75GB of RAM).
 
-## Configuration for Devoxx Belgium
+## How we prepared for the load
 
-To manage the high load, we have configured the Alf.io deployment to have 4 replicas, spread across a total of 3 nodes.
+### Alf.io Deployment configuration
+
+We have configured the Alf.io deployment to have 4 replicas, spread across a total of 3 nodes.
 The Alf.io container is assigned a memory request/limit of 1024MB and no CPU requests/limit, ensuring sufficient CPU resources for fast container restarts in case of errors.
+
+### Refactoring the Invoice Number Service
+
+In compliance with Belgian law, companies are required to use sequential numbers when generating invoices. Cancelled invoice numbers need to be recycled to maintain the sequential integrity.
+
+While this country-specific logic is not supported by alf.io, [Stephan Jannsen](https://twitter.com/stephan007), the organizer of Devoxx Belgium, developed an external microservice that implements this particular requirements.
+
+This microservice is invoked by alf.io whenever there's a need to create a new invoice, leveraging the capabilities of our [Extension Engine](https://alf.io/docs/reference/extensions/).
+
+During the past year, we identified a potential concurrency issue within this component. To address this, Stephan decided to improve this service with the goal of eliminating any potential race conditions. 
+For further details, you can refer to his [initial blog post](https://www.linkedin.com/pulse/invoice-generation-logic-devoxx-stephan-janssen) and the subsequent [follow-up post](https://www.linkedin.com/pulse/devoxx-invoice-generator-v2-stephan-janssen), which incorporates suggestions contributed by members of the Devoxx community.
+
 
 ## Everything happened in 30 seconds
 
@@ -87,11 +106,13 @@ The Database CPU usage also reflects the load:
 
 ### The reasons behind this load 
 
-In an effort to ensure more fairness compared to last year's edition, Devoxx BE organizers decided to reduce the maximum number of tickets per reservation from 40 to 10.
+In an effort to ensure more fairness compared to last year's edition, Devoxx BE organizers decided to reduce the maximum number of tickets per reservation from 50 to 10.
 
 The decrease in tickets per reservation (scale down, vertically) triggered an increase in the number of clients trying to reserve (scale out, horizontally). As a result, we recorded an unprecedented load on our cluster.
 
 > &lt;brag-mode&gt; 🍻 We are really proud of how Alf.io and Swicket's infrastructure handled this unexpected surge, even with a single-core database! &lt;/brag-mode&gt;
+
+> &lt;brag-mode&gt; 🍻 The Invoice Number Service performed extremely well under load, and generated hundreds of invoice numbers without problems! &lt;/brag-mode&gt;
 
 ## (More) Technical details: ticket reservation flow
 
@@ -129,4 +150,7 @@ Keep them coming!
 ### UX Perspective
 
 Some people expressed frustration when they missed out on buying their tickets just because they were a couple of seconds late. We are now evaluating different approaches to improve fairness in the process.
-While we have initial ideas, we're eager to hear suggestions from you! Feel free to comment here or post a message on our [discussion board](https://github.com/alfio-event/alf.io/discussions/categories/ideas). Thank you!
+
+Our initial idea would be to allow people to pre-register to a waitlist and then allocate tickets through a random selection process.
+
+However, we're eager to hear suggestions from you! Feel free to comment here or post a message on our [discussion board](https://github.com/alfio-event/alf.io/discussions/categories/ideas). Thank you!
