@@ -113,8 +113,8 @@ params:
     intro: "Hi there, my name is"
     title: "Celestino"
     subtitle: '"The ticket guy"'
-    content: "Fast learner, passionate software developer with 20+ years of experience in the industry, proficient in Java (1.3-19) and web development.
-    I really like to experiment with new technologies and frameworks. My main job is helping [Claranet Switzerland's](https://www.claranet.ch) customers to optimize and package java applications to run in the cloud."
+    content: "I'm a fast learner and passionate software developer with 20+ years of experience in the industry, proficient in Java (1.3 to 27) and web development.
+    I enjoy experimenting with new technologies and frameworks. My main job is helping [Swicket's](https://www.swicket.io) customers run their events."
     image: /images/me.jpg
     button:
       enable: false
