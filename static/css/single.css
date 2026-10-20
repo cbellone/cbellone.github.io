@@ -124,6 +124,11 @@
     color: var(--primary-color) !important;
 }
 
+/* the table header has the primary color as background: code inside it takes the text color of the header */
+#single .page-content table > thead > tr > th code {
+    color: inherit !important;
+}
+
 /* kbd and mark */
 
 #single .page-content kbd {
